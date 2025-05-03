@@ -47,30 +47,17 @@ const UserStatusWidget: React.FC = () => {
       // Subscribe to socket events
       const statusChangeUnsubscribe = on(SocketEvent.USER_STATUS_CHANGE, handleStatusChange);
       
-      // Listen for active users response
-      const activeUsersEventName = 'users:active';
-      const activeUsersHandler = (data: { users: UserStatus[] }) => {
-        handleActiveUsers(data);
-      };
-      
-      // Add event listener
-      if (isConnected) {
-        const socket = (window as any).socket;
-        if (socket) {
-          socket.on(activeUsersEventName, activeUsersHandler);
-        }
-      }
-      
+      // Set up listener for active users response
+      const activeUsersUnsubscribe = on(SocketEvent.USERS_ACTIVE, handleActiveUsers);
+            
       return () => {
         // Cleanup event listeners
         statusChangeUnsubscribe();
-        
-        // Clean up active users listener
-        const socket = (window as any).socket;
-        if (socket) {
-          socket.off(activeUsersEventName, activeUsersHandler);
-        }
+        activeUsersUnsubscribe();
       };
+    } else {
+      // Not connected, show empty state
+      setIsLoading(false);
     }
   }, [isConnected, on, emit]);
   
@@ -117,7 +104,9 @@ const UserStatusWidget: React.FC = () => {
       
       <div className="user-status-list">
         {userStatuses.length === 0 ? (
-          <div className="no-users-message">No team members online</div>
+          <div className="no-users-message">
+            {isConnected ? 'No team members online' : 'Connect to see team status'}
+          </div>
         ) : (
           userStatuses.map(user => (
             <div key={user.id} className="user-status-item">

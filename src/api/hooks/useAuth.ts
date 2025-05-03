@@ -129,16 +129,26 @@ export const useCurrentUser = () => {
 // Hook to handle socket auth events
 export const useAuthSocketEvents = () => {
   const dispatch = useAppDispatch();
+  // We'll wrap the navigation in a try/catch to handle potential errors
   const navigate = useNavigate();
   const refreshToken = useRefreshToken();
 
   useEffect(() => {
+    // Function to safely navigate
+    const safeNavigate = (path: string) => {
+      try {
+        navigate(path);
+      } catch (error) {
+        console.error("Navigation error:", error);
+      }
+    };
+
     // Session expired event
     const sessionExpiredUnsubscribe = socketService.on(
       SocketEvent.AUTH_SESSION_EXPIRED, 
       () => {
         dispatch(sessionExpired());
-        navigate('/');
+        safeNavigate('/');
       }
     );
 
@@ -147,7 +157,7 @@ export const useAuthSocketEvents = () => {
       SocketEvent.AUTH_LOGGED_OUT, 
       () => {
         dispatch(forceLogout('You have been logged out from another device'));
-        navigate('/');
+        safeNavigate('/');
       }
     );
 
@@ -156,7 +166,7 @@ export const useAuthSocketEvents = () => {
       SocketEvent.AUTH_NEW_LOGIN, 
       () => {
         dispatch(forceLogout('Your account was accessed from another device'));
-        navigate('/');
+        safeNavigate('/');
       }
     );
 

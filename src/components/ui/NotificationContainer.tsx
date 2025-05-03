@@ -24,7 +24,8 @@ const NotificationContainer: React.FC = () => {
     };
   }, [notifications, markAsRead]);
   
-  if (notifications.length === 0) {
+  // Only render if there are notifications
+  if (!notifications || notifications.length === 0) {
     return null;
   }
   

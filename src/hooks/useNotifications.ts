@@ -38,11 +38,19 @@ export const useNotifications = () => {
       const notificationClearHandler = (notificationId: string) => {
         dispatch(removeNotification(notificationId));
       };
+      
+      // Handler for notifications list response
+      const notificationsListHandler = (data: Notification[]) => {
+        if (Array.isArray(data)) {
+          dispatch(setNotifications(data));
+        }
+      };
 
       // Subscribe to socket events
       const newNotificationUnsubscribe = on(SocketEvent.NOTIFICATION_NEW, newNotificationHandler);
       const notificationReadUnsubscribe = on(SocketEvent.NOTIFICATION_READ, notificationReadHandler);
       const notificationClearUnsubscribe = on(SocketEvent.NOTIFICATION_CLEAR, notificationClearHandler);
+      const notificationsListUnsubscribe = on(SocketEvent.NOTIFICATIONS_LIST, notificationsListHandler);
 
       // Fetch initial notifications when socket connects
       emit('notifications:fetch');
@@ -52,6 +60,7 @@ export const useNotifications = () => {
         newNotificationUnsubscribe();
         notificationReadUnsubscribe();
         notificationClearUnsubscribe();
+        notificationsListUnsubscribe();
       };
     }
   }, [dispatch, isAuthenticated, isConnected, on, emit]);

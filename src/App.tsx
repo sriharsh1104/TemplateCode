@@ -18,7 +18,9 @@ import { useCurrentUser, useAuthSocketEvents } from './api/hooks/useAuth';
 import { showLoader, hideLoader } from './redux/slices/loadingSlice';
 import './styles/global.scss';
 
-function App() {
+// Move the inner content of App into a separate component
+// This allows us to use router hooks inside it
+function AppContent() {
   // Get authentication state from Redux
   const { user } = useAppSelector(selectAuth);
   const isAuthenticated = !!user?.isAuthenticated;
@@ -28,6 +30,7 @@ function App() {
   const { isLoading: isLoadingUser } = useCurrentUser();
   
   // Initialize auth socket events (session expiration, etc.)
+  // Now this is safely inside the Router context
   useAuthSocketEvents();
 
   // Show global loader while checking auth status
@@ -52,71 +55,80 @@ function App() {
   };
 
   return (
+    <>
+      {/* Global components */}
+      <GlobalLoader />
+      <NotificationContainer />
+      <ConnectionStatus />
+      
+      <Routes>
+        {/* Root redirect - Sign In page */}
+        <Route 
+          path="/" 
+          element={
+            isAuthenticated ? <Navigate to="/auth/dashboard" replace /> : <SignIn />
+          } 
+        />
+        
+        {/* Sign Up route */}
+        <Route path="/signup" element={
+          isAuthenticated ? <Navigate to="/auth/dashboard" replace /> : <SignUp />
+        } />
+        
+        {/* Other auth routes */}
+        <Route path="/forgot-password" element={
+          isAuthenticated ? <Navigate to="/auth/dashboard" replace /> : <ForgotPassword />
+        } />
+        <Route path="/reset-password" element={
+          isAuthenticated ? <Navigate to="/auth/dashboard" replace /> : <ResetPassword />
+        } />
+        
+        {/* Protected routes - wrapped in AuthGuard */}
+        <Route element={<AuthGuard />}>
+          <Route path="/auth" element={<Outlet />}>
+            <Route 
+              path="dashboard" 
+              element={
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              } 
+            />
+            <Route 
+              path="profile" 
+              element={
+                <Layout>
+                  <Profile />
+                </Layout>
+              } 
+            />
+            <Route 
+              path="settings" 
+              element={
+                <Layout>
+                  <div className="settings-page">
+                    <h1>Settings</h1>
+                    <p>This is the settings page. Content will be added soon.</p>
+                  </div>
+                </Layout>
+              } 
+            />
+          </Route>
+        </Route>
+
+        {/* Catch all - 404 */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
+  );
+}
+
+// Main App component
+function App() {
+  return (
     <ThemeProvider>
       <Router>
-        {/* Global components */}
-        <GlobalLoader />
-        <NotificationContainer />
-        <ConnectionStatus />
-        
-        <Routes>
-          {/* Root redirect - Sign In page */}
-          <Route 
-            path="/" 
-            element={
-              isAuthenticated ? <Navigate to="/auth/dashboard" replace /> : <SignIn />
-            } 
-          />
-          
-          {/* Sign Up route */}
-          <Route path="/signup" element={
-            isAuthenticated ? <Navigate to="/auth/dashboard" replace /> : <SignUp />
-          } />
-          
-          {/* Other auth routes */}
-          <Route path="/forgot-password" element={
-            isAuthenticated ? <Navigate to="/auth/dashboard" replace /> : <ForgotPassword />
-          } />
-          <Route path="/reset-password" element={
-            isAuthenticated ? <Navigate to="/auth/dashboard" replace /> : <ResetPassword />
-          } />
-          
-          {/* Protected routes - wrapped in AuthGuard */}
-          <Route element={<AuthGuard />}>
-            <Route path="/auth" element={<Outlet />}>
-              <Route 
-                path="dashboard" 
-                element={
-                  <Layout>
-                    <Dashboard />
-                  </Layout>
-                } 
-              />
-              <Route 
-                path="profile" 
-                element={
-                  <Layout>
-                    <Profile />
-                  </Layout>
-                } 
-              />
-              <Route 
-                path="settings" 
-                element={
-                  <Layout>
-                    <div className="settings-page">
-                      <h1>Settings</h1>
-                      <p>This is the settings page. Content will be added soon.</p>
-                    </div>
-                  </Layout>
-                } 
-              />
-            </Route>
-          </Route>
-
-          {/* Catch all - 404 */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AppContent />
       </Router>
     </ThemeProvider>
   );

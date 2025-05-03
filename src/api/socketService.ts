@@ -1,7 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import store from '../redux/store';
 import { showLoader, hideLoader } from '../redux/slices/loadingSlice';
-import { mockEvents, mockServerResponses } from './mockSocketData';
 import env from '../utils/env';
 
 // Define event types for better type safety
@@ -22,11 +21,13 @@ export enum SocketEvent {
   // User events
   USER_STATUS_CHANGE = 'user:statusChange',
   USER_DATA_UPDATE = 'user:dataUpdate',
+  USERS_ACTIVE = 'users-active',
   
   // Notification events
   NOTIFICATION_NEW = 'notification:new',
   NOTIFICATION_READ = 'notification:read',
   NOTIFICATION_CLEAR = 'notification:clear',
+  NOTIFICATIONS_LIST = 'notifications-list',
 }
 
 // Type for listeners
@@ -39,8 +40,6 @@ class SocketService {
   private isConnected: boolean = false;
   private reconnectAttempts: number = 0;
   private maxReconnectAttempts: number = 5;
-  private mockMode: boolean = true; // Enable mock mode for development
-  private mockEventTimers: NodeJS.Timeout[] = [];
   
   constructor(url: string) {
     this.url = url;
@@ -51,12 +50,6 @@ class SocketService {
   public init(token?: string): void {
     if (this.socket) {
       this.socket.disconnect();
-    }
-    
-    if (this.mockMode) {
-      console.log('[Socket Mock] Initializing mock socket');
-      this.startMockMode(token);
-      return;
     }
     
     const options = {
@@ -135,37 +128,8 @@ class SocketService {
     });
   }
   
-  // Start mock mode for development (simulate socket events)
-  private startMockMode(token?: string): void {
-    // Clear existing timers
-    this.mockEventTimers.forEach(timer => clearTimeout(timer));
-    this.mockEventTimers = [];
-    
-    // Simulate connection
-    setTimeout(() => {
-      this.isConnected = true;
-      console.log('[Socket Mock] Connected');
-      this.emitToListeners(SocketEvent.CONNECT, null);
-      
-      // Schedule mock events
-      mockEvents.forEach(event => {
-        const timer = setTimeout(() => {
-          console.log(`[Socket Mock] Emitting event: ${event.event}`, event.data);
-          this.emitToListeners(event.event, event.data);
-        }, event.delay);
-        
-        this.mockEventTimers.push(timer);
-      });
-    }, 500);
-  }
-  
   // Update auth token (useful after re-authentication)
   public updateToken(token: string): void {
-    if (this.mockMode) {
-      console.log('[Socket Mock] Token updated');
-      return;
-    }
-    
     if (this.socket) {
       this.socket.auth = { token };
       if (!this.isConnected) {
@@ -176,16 +140,6 @@ class SocketService {
   
   // Disconnect socket
   public disconnect(): void {
-    if (this.mockMode) {
-      // Clear mock timers
-      this.mockEventTimers.forEach(timer => clearTimeout(timer));
-      this.mockEventTimers = [];
-      this.isConnected = false;
-      console.log('[Socket Mock] Disconnected');
-      this.emitToListeners(SocketEvent.DISCONNECT, 'mock-disconnect');
-      return;
-    }
-    
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
@@ -224,32 +178,6 @@ class SocketService {
   
   // Emit event to server
   public emit(event: string, data?: any): void {
-    if (this.mockMode) {
-      console.log(`[Socket Mock] Emit: ${event}`, data);
-      
-      // Simulate server response based on the event
-      if (mockServerResponses[event]) {
-        setTimeout(() => {
-          console.log(`[Socket Mock] Response for: ${event}`, mockServerResponses[event]);
-          // Expose socket object for components to register direct events
-          if (typeof window !== 'undefined') {
-            (window as any).socket = {
-              on: (event: string, callback: (data: any) => void) => {
-                callback(mockServerResponses[event]);
-                return () => {};
-              },
-              off: () => {}
-            };
-          }
-          // For standard events, emit to listeners
-          const eventName = event.replace(':', '-');
-          this.emitToListeners(eventName, mockServerResponses[event]);
-        }, 300);
-      }
-      
-      return;
-    }
-    
     if (this.socket && this.isConnected) {
       this.socket.emit(event, data);
     } else {
