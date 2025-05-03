@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
+import Settings from '../ui/Settings';
 import './Header.scss';
 
 // MUI Icons
@@ -34,6 +35,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
         <button className="header__icon-btn">
           <NotificationsNoneOutlinedIcon />
         </button>
+        <Settings />
         <Link to="/profile" className="header__profile">
           <PersonOutlineOutlinedIcon />
           <span>Profile</span>

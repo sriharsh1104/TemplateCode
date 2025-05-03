@@ -101,8 +101,9 @@ const ResetPassword: React.FC = () => {
             
             <div className="auth-footer">
               <p>
-                <Link to="/signin" className="auth-link">
-                  Back to Sign In
+                Remember your password?{' '}
+                <Link to="/" className="auth-link">
+                  Sign In
                 </Link>
               </p>
             </div>

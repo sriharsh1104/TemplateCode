@@ -56,4 +56,19 @@
       text-decoration: underline;
     }
   }
+}
+
+.auth-container {
+  // ... existing code ...
+}
+
+.auth-error {
+  background-color: rgba(var(--danger-rgb), 0.1);
+  color: var(--danger-color);
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  text-align: center;
+  border: 1px solid rgba(var(--danger-rgb), 0.2);
 } 

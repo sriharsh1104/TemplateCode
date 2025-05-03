@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import CustomInput from '../ui/CustomInput';
 import './SignUp.scss';
 
 const SignUp: React.FC = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -13,6 +14,7 @@ const SignUp: React.FC = () => {
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -67,6 +69,34 @@ const SignUp: React.FC = () => {
     if (validate()) {
       // Handle sign up logic here
       console.log('Sign up with:', formData);
+      
+      setIsLoading(true);
+      
+      // Simulate signup request
+      setTimeout(() => {
+        try {
+          // Store user data in localStorage
+          const userData = {
+            email: formData.email,
+            name: formData.fullName,
+            isAuthenticated: true,
+            lastLogin: new Date().toISOString()
+          };
+          
+          localStorage.setItem('user', JSON.stringify(userData));
+          
+          // Force authentication state update
+          window.dispatchEvent(new Event('auth-change'));
+          
+          // Navigate to dashboard after signing up
+          setIsLoading(false);
+          navigate('/auth/dashboard');
+        } catch (err) {
+          setIsLoading(false);
+          setErrors({ form: 'Registration failed. Please try again.' });
+          console.error('Signup error:', err);
+        }
+      }, 1000);
     }
   };
   
@@ -79,6 +109,8 @@ const SignUp: React.FC = () => {
         </div>
         
         <form className="auth-form" onSubmit={handleSubmit}>
+          {errors.form && <div className="auth-error">{errors.form}</div>}
+          
           <CustomInput
             label="Full Name"
             type="text"
@@ -147,14 +179,14 @@ const SignUp: React.FC = () => {
             )}
           </div>
           
-          <button type="submit" className="btn btn-primary signup-btn">
-            Create Account
+          <button type="submit" className="btn btn-primary signup-btn" disabled={isLoading}>
+            {isLoading ? 'Creating Account...' : 'Create Account'}
           </button>
           
           <div className="auth-footer">
             <p>
               Already have an account?{' '}
-              <Link to="/signin" className="auth-link">
+              <Link to="/" className="auth-link">
                 Sign In
               </Link>
             </p>
