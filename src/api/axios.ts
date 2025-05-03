@@ -1,9 +1,10 @@
 import axios from 'axios';
 import store from '../redux/store';
 import { sessionExpired, logout } from '../redux/slices/authSlice';
+import env from '../utils/env';
 
 // Base API URL
-const API_URL = process.env.REACT_APP_API_URL || 'https://api.example.com';
+const API_URL = env.REACT_APP_API_URL;
 
 // Create a base axios instance
 const axiosInstance = axios.create({

@@ -2,6 +2,7 @@ import { io, Socket } from 'socket.io-client';
 import store from '../redux/store';
 import { showLoader, hideLoader } from '../redux/slices/loadingSlice';
 import { mockEvents, mockServerResponses } from './mockSocketData';
+import env from '../utils/env';
 
 // Define event types for better type safety
 export enum SocketEvent {
@@ -272,6 +273,6 @@ class SocketService {
 }
 
 // Create a singleton instance with the API URL
-const socketService = new SocketService(process.env.REACT_APP_SOCKET_URL || 'https://api.yourdomain.com');
+const socketService = new SocketService(env.REACT_APP_SOCKET_URL);
 
 export default socketService; 
