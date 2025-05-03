@@ -1,10 +1,13 @@
 import React from 'react';
 import { useDashboardStats } from '../api/hooks/useUser';
 import { useGlobalLoader } from '../hooks/useGlobalLoader';
+import UserStatusWidget from '../components/dashboard/UserStatusWidget';
+import { useSocket } from '../hooks/useSocket';
 import './Dashboard.scss';
 
 const Dashboard: React.FC = () => {
   const { data: stats, isLoading, isError } = useDashboardStats();
+  const { isConnected } = useSocket();
   
   // Use the global loader hook
   useGlobalLoader(isLoading, "Loading dashboard data...");
@@ -31,7 +34,10 @@ const Dashboard: React.FC = () => {
     <div className="dashboard">
       <div className="dashboard__header">
         <h1 className="dashboard__title">Dashboard</h1>
-        <p className="dashboard__subtitle">Welcome to your dashboard</p>
+        <p className="dashboard__subtitle">
+          Welcome to your dashboard
+          {isConnected && <span className="realtime-badge">Real-time updates active</span>}
+        </p>
       </div>
       
       <div className="dashboard__stats">
@@ -69,7 +75,7 @@ const Dashboard: React.FC = () => {
       </div>
       
       <div className="dashboard__content">
-        <div className="dashboard__section">
+        <div className="dashboard__section dashboard__section--activity">
           <h2 className="section-title">Recent Activity</h2>
           <div className="card">
             <ul className="activity-list">
@@ -86,7 +92,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
         
-        <div className="dashboard__section">
+        <div className="dashboard__section dashboard__section--actions">
           <h2 className="section-title">Quick Actions</h2>
           <div className="card">
             <div className="quick-actions">
@@ -108,6 +114,11 @@ const Dashboard: React.FC = () => {
               </button>
             </div>
           </div>
+        </div>
+        
+        <div className="dashboard__section dashboard__section--team">
+          <h2 className="section-title">Team</h2>
+          <UserStatusWidget />
         </div>
       </div>
     </div>

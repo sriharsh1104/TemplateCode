@@ -1,0 +1,132 @@
+.notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 350px;
+  max-width: 90vw;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notification {
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  animation: slide-in 0.3s ease forwards;
+  border-left: 4px solid;
+  
+  &.read {
+    opacity: 0.8;
+  }
+  
+  &.unread {
+    opacity: 1;
+  }
+  
+  &.notification-info {
+    background-color: #f0f7ff;
+    border-left-color: var(--primary-color, #4c9aff);
+    
+    .notification-title {
+      color: var(--primary-color, #4c9aff);
+    }
+  }
+  
+  &.notification-success {
+    background-color: #f0fff4;
+    border-left-color: var(--success-color, #28a745);
+    
+    .notification-title {
+      color: var(--success-color, #28a745);
+    }
+  }
+  
+  &.notification-warning {
+    background-color: #fffbf0;
+    border-left-color: var(--warning-color, #ffc107);
+    
+    .notification-title {
+      color: var(--warning-color, #ffc107);
+    }
+  }
+  
+  &.notification-error {
+    background-color: #fff0f0;
+    border-left-color: var(--error-color, #dc3545);
+    
+    .notification-title {
+      color: var(--error-color, #dc3545);
+    }
+  }
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+
+.notification-message {
+  font-size: 14px;
+  color: var(--text-color, #333);
+  margin: 0 0 8px 0;
+}
+
+.notification-time {
+  font-size: 12px;
+  color: var(--text-light, #777);
+}
+
+.notification-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-light, #777);
+  opacity: 0.7;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  
+  &:hover {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+}
+
+// Animation
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 576px) {
+  .notification-container {
+    top: 10px;
+    right: 10px;
+    width: calc(100% - 20px);
+  }
+} 

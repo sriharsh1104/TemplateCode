@@ -10,9 +10,11 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import GlobalLoader from './components/ui/GlobalLoader';
+import NotificationContainer from './components/ui/NotificationContainer';
+import ConnectionStatus from './components/ui/ConnectionStatus';
 import { useAppSelector, useAppDispatch } from './redux/hooks';
 import { selectAuth } from './redux/slices/authSlice';
-import { useCurrentUser } from './api/hooks/useAuth';
+import { useCurrentUser, useAuthSocketEvents } from './api/hooks/useAuth';
 import { showLoader, hideLoader } from './redux/slices/loadingSlice';
 import './styles/global.scss';
 
@@ -24,6 +26,9 @@ function App() {
 
   // Load user data if token exists
   const { isLoading: isLoadingUser } = useCurrentUser();
+  
+  // Initialize auth socket events (session expiration, etc.)
+  useAuthSocketEvents();
 
   // Show global loader while checking auth status
   useEffect(() => {
@@ -49,7 +54,11 @@ function App() {
   return (
     <ThemeProvider>
       <Router>
+        {/* Global components */}
         <GlobalLoader />
+        <NotificationContainer />
+        <ConnectionStatus />
+        
         <Routes>
           {/* Root redirect - Sign In page */}
           <Route 

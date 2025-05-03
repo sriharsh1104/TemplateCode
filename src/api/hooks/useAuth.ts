@@ -1,9 +1,19 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../../redux/hooks';
-import { loginSuccess, logout as logoutAction, setError, setLoading } from '../../redux/slices/authSlice';
+import { 
+  loginSuccess, 
+  logout as logoutAction, 
+  sessionExpired,
+  refreshToken as refreshTokenAction,
+  forceLogout,
+  setError, 
+  setLoading 
+} from '../../redux/slices/authSlice';
 import authService, { LoginCredentials, SignUpData } from '../services/authService';
 import queryClient from '../queryClient';
+import socketService, { SocketEvent } from '../socketService';
+import { useEffect } from 'react';
 
 // Login hook
 export const useLogin = () => {
@@ -17,7 +27,11 @@ export const useLogin = () => {
       dispatch(setError(null));
     },
     onSuccess: (data) => {
-      dispatch(loginSuccess(data.user));
+      dispatch(loginSuccess(data));
+      
+      // Initialize socket connection with the new token
+      socketService.init(data.token);
+      
       navigate('/auth/dashboard');
     },
     onError: (error: any) => {
@@ -39,7 +53,11 @@ export const useSignUp = () => {
       dispatch(setError(null));
     },
     onSuccess: (data) => {
-      dispatch(loginSuccess(data.user));
+      dispatch(loginSuccess(data));
+      
+      // Initialize socket connection with the new token
+      socketService.init(data.token);
+      
       navigate('/auth/dashboard');
     },
     onError: (error: any) => {
@@ -57,9 +75,32 @@ export const useLogout = () => {
   return useMutation({
     mutationFn: () => authService.logout(),
     onSuccess: () => {
+      // Disconnect socket
+      socketService.disconnect();
+      
       dispatch(logoutAction());
       queryClient.clear(); // Clear all queries from cache
       navigate('/');
+    },
+    onError: () => {
+      // Even if API call fails, perform local logout
+      socketService.disconnect();
+      dispatch(logoutAction());
+      queryClient.clear();
+      navigate('/');
+    },
+  });
+};
+
+// Refresh token hook
+export const useRefreshToken = () => {
+  const dispatch = useAppDispatch();
+
+  return useMutation({
+    mutationFn: () => authService.refreshToken(),
+    onSuccess: (data) => {
+      dispatch(refreshTokenAction(data));
+      socketService.updateToken(data.token);
     },
   });
 };
@@ -72,14 +113,64 @@ export const useCurrentUser = () => {
     queryKey: ['currentUser'],
     queryFn: () => authService.getCurrentUser(),
     enabled: !!localStorage.getItem('token'), // Only run if token exists
-    onSuccess: (user) => {
-      dispatch(loginSuccess(user));
+    onSuccess: (data) => {
+      dispatch(loginSuccess(data));
+      
+      // Initialize socket connection
+      socketService.init(data.token);
     },
     onError: () => {
       // Handle error silently, or navigate to login
       dispatch(logoutAction());
     },
   });
+};
+
+// Hook to handle socket auth events
+export const useAuthSocketEvents = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const refreshToken = useRefreshToken();
+
+  useEffect(() => {
+    // Session expired event
+    const sessionExpiredUnsubscribe = socketService.on(
+      SocketEvent.AUTH_SESSION_EXPIRED, 
+      () => {
+        dispatch(sessionExpired());
+        navigate('/');
+      }
+    );
+
+    // Logged out from another device
+    const loggedOutUnsubscribe = socketService.on(
+      SocketEvent.AUTH_LOGGED_OUT, 
+      () => {
+        dispatch(forceLogout('You have been logged out from another device'));
+        navigate('/');
+      }
+    );
+
+    // New login detected on another device
+    const newLoginUnsubscribe = socketService.on(
+      SocketEvent.AUTH_NEW_LOGIN, 
+      () => {
+        dispatch(forceLogout('Your account was accessed from another device'));
+        navigate('/');
+      }
+    );
+
+    return () => {
+      sessionExpiredUnsubscribe();
+      loggedOutUnsubscribe();
+      newLoginUnsubscribe();
+    };
+  }, [dispatch, navigate]);
+
+  return {
+    refreshToken: refreshToken.mutate,
+    isRefreshing: refreshToken.isPending,
+  };
 };
 
 // Reset password request hook
