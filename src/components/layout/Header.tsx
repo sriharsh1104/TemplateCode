@@ -36,10 +36,6 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
           <NotificationsNoneOutlinedIcon />
         </button>
         <Settings />
-        <Link to="/profile" className="header__profile">
-          <PersonOutlineOutlinedIcon />
-          <span>Profile</span>
-        </Link>
       </div>
     </header>
   );
