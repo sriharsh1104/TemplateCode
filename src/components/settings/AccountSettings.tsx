@@ -42,9 +42,50 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File is too large. Maximum size is 5MB.');
+        return;
+      }
+
+      // Check file type
+      if (!file.type.match('image.*')) {
+        alert('Only image files are allowed.');
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
-        setProfileImage(reader.result as string);
+        // Create an image to get dimensions
+        const img = new Image();
+        img.onload = () => {
+          // Create a canvas to resize the image if needed
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Maintain aspect ratio but limit size
+          const MAX_SIZE = 300;
+          if (width > height && width > MAX_SIZE) {
+            height = Math.round((height * MAX_SIZE) / width);
+            width = MAX_SIZE;
+          } else if (height > MAX_SIZE) {
+            width = Math.round((width * MAX_SIZE) / height);
+            height = MAX_SIZE;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          // Draw and export the image
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          // Convert to data URL with reduced quality
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          setProfileImage(dataUrl);
+        };
+        img.src = reader.result as string;
       };
       reader.readAsDataURL(file);
     }
@@ -73,33 +114,45 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
         <div className="settings-section">
           <h2 className="settings-section-title">Profile Picture</h2>
           <div className="profile-image-container">
-            <div className="profile-image">
-              {profileImage ? (
-                <img src={profileImage} alt="Profile" />
-              ) : (
-                <div className="profile-placeholder">
-                  {formData.fullName ? formData.fullName.charAt(0).toUpperCase() : 'U'}
+            <div className="profile-image-wrapper">
+              <div className="profile-image">
+                {profileImage ? (
+                  <img src={profileImage} alt="Profile" />
+                ) : (
+                  <div className="profile-placeholder">
+                    {formData.fullName ? formData.fullName.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                )}
+                <div className="profile-image-overlay">
+                  <label htmlFor="profile-upload" className="profile-upload-label">
+                    <PhotoCameraIcon />
+                  </label>
+                  <input 
+                    type="file" 
+                    id="profile-upload" 
+                    accept="image/*" 
+                    onChange={handleImageUpload} 
+                    style={{ display: 'none' }} 
+                  />
                 </div>
-              )}
-              <div className="profile-image-overlay">
-                <label htmlFor="profile-upload" className="profile-upload-label">
-                  <PhotoCameraIcon />
-                </label>
-                <input 
-                  type="file" 
-                  id="profile-upload" 
-                  accept="image/*" 
-                  onChange={handleImageUpload} 
-                  style={{ display: 'none' }} 
-                />
               </div>
             </div>
             <div className="profile-image-actions">
-              <button type="button" className="settings-button secondary" onClick={() => document.getElementById('profile-upload')?.click()}>
+              <button 
+                type="button" 
+                className="settings-button secondary" 
+                onClick={() => document.getElementById('profile-upload')?.click()}
+              >
+                <PhotoCameraIcon fontSize="small" />
                 Change Photo
               </button>
               {profileImage && (
-                <button type="button" className="settings-button secondary" onClick={() => setProfileImage(null)}>
+                <button 
+                  type="button" 
+                  className="settings-button secondary" 
+                  onClick={() => setProfileImage(null)}
+                >
+                  <DeleteIcon fontSize="small" />
                   Remove
                 </button>
               )}
