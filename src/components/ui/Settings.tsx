@@ -7,7 +7,6 @@ import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined
 import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined';
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
-import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import { useNavigate } from 'react-router-dom';
 
 const Settings: React.FC = () => {
@@ -31,17 +30,6 @@ const Settings: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
-  const handleLogout = () => {
-    // Remove user data from localStorage
-    localStorage.removeItem('user');
-    
-    // Dispatch auth change event to update app state
-    window.dispatchEvent(new Event('auth-change'));
-    
-    // Navigate to sign in page
-    navigate('/auth/signin');
-  };
 
   const settingsOptions = [
     {
@@ -68,12 +56,6 @@ const Settings: React.FC = () => {
       icon: <HelpOutlineOutlinedIcon />,
       onClick: () => console.log('Help')
     },
-    {
-      id: 'logout',
-      label: 'Logout',
-      icon: <LogoutOutlinedIcon />,
-      onClick: handleLogout
-    }
   ];
 
   return (
