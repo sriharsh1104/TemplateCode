@@ -1,66 +1,54 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import CustomInput from '../ui/CustomInput';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
 import './ResetPassword.scss';
+
+// Validation schema
+const ResetPasswordSchema = Yup.object().shape({
+  password: Yup.string()
+    .required('New password is required')
+    .min(8, 'Password must be at least 8 characters')
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+    ),
+  confirmPassword: Yup.string()
+    .required('Please confirm your password')
+    .oneOf([Yup.ref('password')], 'Passwords must match')
+});
+
+// Form values interface
+interface ResetPasswordValues {
+  password: string;
+  confirmPassword: string;
+}
 
 const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const [resetComplete, setResetComplete] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+  
+  // Initial form values
+  const initialValues: ResetPasswordValues = {
     password: '',
     confirmPassword: ''
-  });
-  
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [resetComplete, setResetComplete] = useState(false);
-  
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
   };
   
-  const validate = () => {
-    const newErrors: Record<string, string> = {};
+  const handleSubmit = (values: ResetPasswordValues) => {
+    // Clear any previous errors
+    setServerError(null);
     
-    if (!formData.password) {
-      newErrors.password = 'New password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
+    // In a real app, you would call an API to reset the password
+    console.log('Resetting password with:', values);
     
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
+    // Simulate success
+    setResetComplete(true);
     
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (validate()) {
-      // In a real app, you would call an API to reset the password
-      console.log('Resetting password with:', formData);
-      
-      // Simulate success
-      setResetComplete(true);
-      
-      // Redirect to sign in after 3 seconds
-      setTimeout(() => {
-        navigate('/signin');
-      }, 3000);
-    }
+    // Redirect to sign in after 3 seconds
+    setTimeout(() => {
+      navigate('/');
+    }, 3000);
   };
   
   return (
@@ -72,42 +60,58 @@ const ResetPassword: React.FC = () => {
         </div>
         
         {!resetComplete ? (
-          <form className="auth-form" onSubmit={handleSubmit}>
-            <CustomInput
-              label="New Password"
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Enter new password"
-              error={errors.password}
-              fullWidth
-            />
-            
-            <CustomInput
-              label="Confirm Password"
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="Confirm new password"
-              error={errors.confirmPassword}
-              fullWidth
-            />
-            
-            <button type="submit" className="btn btn-primary reset-btn">
-              Reset Password
-            </button>
-            
-            <div className="auth-footer">
-              <p>
-                Remember your password?{' '}
-                <Link to="/" className="auth-link">
-                  Sign In
-                </Link>
-              </p>
-            </div>
-          </form>
+          <Formik
+            initialValues={initialValues}
+            validationSchema={ResetPasswordSchema}
+            onSubmit={handleSubmit}
+          >
+            {({ errors, touched, isSubmitting }) => (
+              <Form className="auth-form">
+                {serverError && <div className="auth-error">{serverError}</div>}
+                
+                <div className="form-group">
+                  <label htmlFor="password" className="form-label">New Password</label>
+                  <Field
+                    id="password"
+                    name="password"
+                    type="password"
+                    className={`form-control ${errors.password && touched.password ? 'is-invalid' : ''}`}
+                    placeholder="Enter new password"
+                  />
+                  <ErrorMessage name="password" component="div" className="error-text" />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
+                  <Field
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    className={`form-control ${errors.confirmPassword && touched.confirmPassword ? 'is-invalid' : ''}`}
+                    placeholder="Confirm new password"
+                  />
+                  <ErrorMessage name="confirmPassword" component="div" className="error-text" />
+                </div>
+                
+                <button 
+                  type="submit" 
+                  className="btn btn-primary reset-btn"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Resetting...' : 'Reset Password'}
+                </button>
+                
+                <div className="auth-footer">
+                  <p>
+                    Remember your password?{' '}
+                    <Link to="/" className="auth-link">
+                      Sign In
+                    </Link>
+                  </p>
+                </div>
+              </Form>
+            )}
+          </Formik>
         ) : (
           <div className="success-message">
             <p>
@@ -115,7 +119,7 @@ const ResetPassword: React.FC = () => {
             </p>
             <p>Redirecting you to the login page...</p>
             
-            <Link to="/signin" className="btn btn-primary back-btn">
+            <Link to="/" className="btn btn-primary back-btn">
               Sign In Now
             </Link>
           </div>

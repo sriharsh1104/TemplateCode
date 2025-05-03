@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
-import { useState, useEffect, ReactNode } from 'react';
+import { useEffect } from 'react';
 import Layout from './components/layout/Layout';
 import SignIn from './components/auth/SignIn';
 import SignUp from './components/auth/SignUp';
@@ -9,59 +9,14 @@ import ResetPassword from './components/auth/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
+import { useAppSelector } from './redux/hooks';
+import { selectAuth } from './redux/slices/authSlice';
 import './styles/global.scss';
 
 function App() {
-  // Get authentication state from localStorage
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  // Function to check user auth state
-  const checkAuthStatus = () => {
-    try {
-      const user = localStorage.getItem('user');
-      const userData = user ? JSON.parse(user) : null;
-      
-      if (userData && userData.isAuthenticated) {
-        setIsAuthenticated(true);
-        return true;
-      } else {
-        setIsAuthenticated(false);
-        return false;
-      }
-    } catch (error) {
-      console.error('Error checking auth status:', error);
-      setIsAuthenticated(false);
-      return false;
-    }
-  };
-
-  // Check if user is authenticated on app load
-  useEffect(() => {
-    checkAuthStatus();
-  }, []);
-
-  // Listen for auth changes
-  useEffect(() => {
-    // Custom event for auth changes within the app
-    const handleAuthChange = () => {
-      checkAuthStatus();
-    };
-
-    // Storage events only fire in other tabs/windows
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'user') {
-        checkAuthStatus();
-      }
-    };
-
-    window.addEventListener('auth-change', handleAuthChange);
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('auth-change', handleAuthChange);
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
+  // Get authentication state from Redux
+  const { user } = useAppSelector(selectAuth);
+  const isAuthenticated = !!user?.isAuthenticated;
 
   // Auth Guard - Protects routes that require authentication
   const AuthGuard = () => {

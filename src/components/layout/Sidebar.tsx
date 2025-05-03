@@ -1,5 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useAppDispatch } from '../../redux/hooks';
+import { logout } from '../../redux/slices/authSlice';
 import './Sidebar.scss';
 
 // MUI Icons
@@ -13,16 +15,14 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const handleLogout = () => {
-    // Remove user data from localStorage
-    localStorage.removeItem('user');
-    
-    // Dispatch auth change event to update app state
-    window.dispatchEvent(new Event('auth-change'));
+    // Dispatch logout action
+    dispatch(logout());
     
     // Navigate to sign in page
-    navigate('/auth/signin');
+    navigate('/');
   };
 
   return (
@@ -32,7 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
           <ul className="sidebar__menu">
             <li className="sidebar__menu-item">
               <NavLink 
-                to="/dashboard"
+                to="/auth/dashboard"
                 className={({ isActive }) => 
                   `sidebar__menu-link ${isActive ? 'active' : ''}`
                 }
@@ -43,7 +43,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
             </li>
             <li className="sidebar__menu-item">
               <NavLink 
-                to="/profile"
+                to="/auth/profile"
                 className={({ isActive }) => 
                   `sidebar__menu-link ${isActive ? 'active' : ''}`
                 }

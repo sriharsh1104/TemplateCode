@@ -1,103 +1,87 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import CustomInput from '../ui/CustomInput';
+import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik';
+import * as Yup from 'yup';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
+import { loginSuccess, setError, setLoading, selectAuth } from '../../redux/slices/authSlice';
 import './SignUp.scss';
+
+// Validation schema
+const SignUpSchema = Yup.object().shape({
+  fullName: Yup.string()
+    .required('Full name is required')
+    .min(2, 'Name is too short'),
+  email: Yup.string()
+    .email('Invalid email address')
+    .required('Email is required'),
+  password: Yup.string()
+    .required('Password is required')
+    .min(8, 'Password must be at least 8 characters')
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+    ),
+  confirmPassword: Yup.string()
+    .required('Please confirm your password')
+    .oneOf([Yup.ref('password')], 'Passwords must match'),
+  agreeToTerms: Yup.boolean()
+    .oneOf([true], 'You must agree to the terms')
+    .required('You must agree to the terms')
+});
+
+// Form values interface
+interface SignUpValues {
+  fullName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  agreeToTerms: boolean;
+}
 
 const SignUp: React.FC = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const dispatch = useAppDispatch();
+  const { isLoading, error } = useAppSelector(selectAuth);
+  
+  // Initial form values
+  const initialValues: SignUpValues = {
     fullName: '',
     email: '',
     password: '',
     confirmPassword: '',
     agreeToTerms: false
-  });
-  
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-    
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
   };
   
-  const validate = () => {
-    const newErrors: Record<string, string> = {};
+  const handleSubmit = (values: SignUpValues, actions: FormikHelpers<SignUpValues>) => {
+    // Clear any previous errors
+    dispatch(setError(null));
+    dispatch(setLoading(true));
     
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
-    }
+    // Handle sign up logic here
+    console.log('Sign up with:', values);
     
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
-    
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-    
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-    
-    if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = 'You must agree to the terms';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (validate()) {
-      // Handle sign up logic here
-      console.log('Sign up with:', formData);
-      
-      setIsLoading(true);
-      
-      // Simulate signup request
-      setTimeout(() => {
-        try {
-          // Store user data in localStorage
-          const userData = {
-            email: formData.email,
-            name: formData.fullName,
-            isAuthenticated: true,
-            lastLogin: new Date().toISOString()
-          };
-          
-          localStorage.setItem('user', JSON.stringify(userData));
-          
-          // Force authentication state update
-          window.dispatchEvent(new Event('auth-change'));
-          
-          // Navigate to dashboard after signing up
-          setIsLoading(false);
-          navigate('/auth/dashboard');
-        } catch (err) {
-          setIsLoading(false);
-          setErrors({ form: 'Registration failed. Please try again.' });
-          console.error('Signup error:', err);
-        }
-      }, 1000);
-    }
+    // Simulate signup request
+    setTimeout(() => {
+      try {
+        // Create user data and dispatch login success
+        const userData = {
+          email: values.email,
+          name: values.fullName,
+          isAuthenticated: true,
+          lastLogin: new Date().toISOString()
+        };
+        
+        dispatch(loginSuccess(userData));
+        
+        // Navigate to dashboard after signing up
+        navigate('/auth/dashboard');
+      } catch (err) {
+        dispatch(setLoading(false));
+        dispatch(setError('Registration failed. Please try again.'));
+        console.error('Signup error:', err);
+        actions.setSubmitting(false);
+      }
+    }, 1000);
   };
   
   return (
@@ -108,90 +92,102 @@ const SignUp: React.FC = () => {
           <p>Fill in the details to get started</p>
         </div>
         
-        <form className="auth-form" onSubmit={handleSubmit}>
-          {errors.form && <div className="auth-error">{errors.form}</div>}
-          
-          <CustomInput
-            label="Full Name"
-            type="text"
-            name="fullName"
-            value={formData.fullName}
-            onChange={handleChange}
-            placeholder="Enter your full name"
-            error={errors.fullName}
-            fullWidth
-          />
-          
-          <CustomInput
-            label="Email"
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="Enter your email"
-            error={errors.email}
-            fullWidth
-          />
-          
-          <CustomInput
-            label="Password"
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="Create a password"
-            error={errors.password}
-            fullWidth
-          />
-          
-          <CustomInput
-            label="Confirm Password"
-            type="password"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            placeholder="Confirm your password"
-            error={errors.confirmPassword}
-            fullWidth
-          />
-          
-          <div className="form-group">
-            <label className={`checkbox-label ${errors.agreeToTerms ? 'has-error' : ''}`}>
-              <input
-                type="checkbox"
-                name="agreeToTerms"
-                checked={formData.agreeToTerms}
-                onChange={handleChange}
-              />
-              <span>
-                I agree to the{' '}
-                <Link to="/terms" className="terms-link">
-                  Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link to="/privacy" className="terms-link">
-                  Privacy Policy
-                </Link>
-              </span>
-            </label>
-            {errors.agreeToTerms && (
-              <p className="error-text">{errors.agreeToTerms}</p>
-            )}
-          </div>
-          
-          <button type="submit" className="btn btn-primary signup-btn" disabled={isLoading}>
-            {isLoading ? 'Creating Account...' : 'Create Account'}
-          </button>
-          
-          <div className="auth-footer">
-            <p>
-              Already have an account?{' '}
-              <Link to="/" className="auth-link">
-                Sign In
-              </Link>
-            </p>
-          </div>
-        </form>
+        <Formik
+          initialValues={initialValues}
+          validationSchema={SignUpSchema}
+          onSubmit={handleSubmit}
+        >
+          {({ errors, touched, isSubmitting }) => (
+            <Form className="auth-form">
+              {error && <div className="auth-error">{error}</div>}
+              
+              <div className="form-group">
+                <label htmlFor="fullName" className="form-label">Full Name</label>
+                <Field
+                  id="fullName"
+                  name="fullName"
+                  type="text"
+                  className={`form-control ${errors.fullName && touched.fullName ? 'is-invalid' : ''}`}
+                  placeholder="Enter your full name"
+                />
+                <ErrorMessage name="fullName" component="div" className="error-text" />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="email" className="form-label">Email</label>
+                <Field
+                  id="email"
+                  name="email"
+                  type="email"
+                  className={`form-control ${errors.email && touched.email ? 'is-invalid' : ''}`}
+                  placeholder="Enter your email"
+                />
+                <ErrorMessage name="email" component="div" className="error-text" />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="password" className="form-label">Password</label>
+                <Field
+                  id="password"
+                  name="password"
+                  type="password"
+                  className={`form-control ${errors.password && touched.password ? 'is-invalid' : ''}`}
+                  placeholder="Create a password"
+                />
+                <ErrorMessage name="password" component="div" className="error-text" />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
+                <Field
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  className={`form-control ${errors.confirmPassword && touched.confirmPassword ? 'is-invalid' : ''}`}
+                  placeholder="Confirm your password"
+                />
+                <ErrorMessage name="confirmPassword" component="div" className="error-text" />
+              </div>
+              
+              <div className="form-group">
+                <label className={`checkbox-label ${errors.agreeToTerms && touched.agreeToTerms ? 'has-error' : ''}`}>
+                  <Field
+                    type="checkbox"
+                    name="agreeToTerms"
+                  />
+                  <span>
+                    I agree to the{' '}
+                    <Link to="/terms" className="terms-link">
+                      Terms of Service
+                    </Link>{' '}
+                    and{' '}
+                    <Link to="/privacy" className="terms-link">
+                      Privacy Policy
+                    </Link>
+                  </span>
+                </label>
+                <ErrorMessage name="agreeToTerms" component="div" className="error-text" />
+              </div>
+              
+              <button 
+                type="submit" 
+                className="btn btn-primary signup-btn" 
+                disabled={isLoading || isSubmitting}
+              >
+                {isLoading ? 'Creating Account...' : 'Create Account'}
+              </button>
+              
+              <div className="auth-footer">
+                <p>
+                  Already have an account?{' '}
+                  <Link to="/" className="auth-link">
+                    Sign In
+                  </Link>
+                </p>
+              </div>
+            </Form>
+          )}
+        </Formik>
       </div>
     </div>
   );
