@@ -1,15 +1,16 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
-import Settings from '../ui/Settings';
+import { useAppDispatch } from '../../redux/hooks';
+import { setActiveSettingsTab } from '../../redux/slices/uiSettingsSlice';
 import './Header.scss';
 
 // MUI Icons
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import MenuIcon from '@mui/icons-material/Menu';
-import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -17,6 +18,13 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   const { darkMode, toggleTheme } = useTheme();
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const handleSettingsClick = () => {
+    dispatch(setActiveSettingsTab('account'));
+    navigate('/auth/settings');
+  };
 
   return (
     <header className="header">
@@ -35,7 +43,9 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
         <button className="header__icon-btn">
           <NotificationsNoneOutlinedIcon />
         </button>
-        <Settings />
+        <button onClick={handleSettingsClick} className="header__icon-btn" title="Settings">
+          <SettingsOutlinedIcon />
+        </button>
       </div>
     </header>
   );

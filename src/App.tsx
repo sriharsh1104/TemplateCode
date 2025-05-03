@@ -12,6 +12,7 @@ import NotFound from './pages/NotFound';
 import GlobalLoader from './components/ui/GlobalLoader';
 import NotificationContainer from './components/ui/NotificationContainer';
 import ConnectionStatus from './components/ui/ConnectionStatus';
+import UserSettings from './components/settings/UserSettings';
 import { useAppSelector, useAppDispatch } from './redux/hooks';
 import { selectAuth } from './redux/slices/authSlice';
 import { useCurrentUser, useAuthSocketEvents } from './api/hooks/useAuth';
@@ -106,10 +107,7 @@ function AppContent() {
               path="settings" 
               element={
                 <Layout>
-                  <div className="settings-page">
-                    <h1>Settings</h1>
-                    <p>This is the settings page. Content will be added soon.</p>
-                  </div>
+                  <UserSettings />
                 </Layout>
               } 
             />

@@ -1,0 +1,231 @@
+.notification-channels {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.notification-channel-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background-color: var(--bg-color);
+  border-radius: 8px;
+  
+  @media (max-width: 576px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}
+
+.notification-channel-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.notification-channel-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: white;
+  
+  &.email {
+    background-color: #4285F4; // Google blue
+  }
+  
+  &.push {
+    background-color: #34A853; // Google green
+  }
+  
+  &.sms {
+    background-color: #FBBC05; // Google yellow
+  }
+}
+
+.notification-channel-details {
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem;
+    color: var(--text-color);
+  }
+  
+  p {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin: 0;
+  }
+}
+
+// Notification types table
+.notification-types-table {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.notification-table-header {
+  display: flex;
+  background-color: var(--bg-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-color);
+}
+
+.notification-table-row {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &:nth-child(even) {
+    background-color: var(--bg-color);
+  }
+}
+
+.notification-type-cell {
+  flex: 3;
+  padding-right: 1rem;
+  
+  h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem;
+    color: var(--text-color);
+  }
+  
+  p {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin: 0;
+  }
+}
+
+.notification-channel-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  
+  span {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
+}
+
+.channel-icon-small {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: white;
+  
+  &.email {
+    background-color: #4285F4; // Google blue
+  }
+  
+  &.push {
+    background-color: #34A853; // Google green
+  }
+  
+  &.sms {
+    background-color: #FBBC05; // Google yellow
+  }
+  
+  svg {
+    font-size: 14px;
+  }
+}
+
+// Quiet hours
+.quiet-hours-container {
+  background-color: var(--bg-color);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.quiet-hours-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-color);
+  }
+}
+
+.quiet-hours-description {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.quiet-hours-times {
+  display: flex;
+  gap: 1rem;
+  
+  @media (max-width: 576px) {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+.time-input-group {
+  flex: 1;
+  
+  label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-color);
+    margin-bottom: 0.25rem;
+  }
+}
+
+// Responsive adjustments for notification types table
+@media (max-width: 768px) {
+  .notification-table-header,
+  .notification-table-row {
+    flex-direction: column;
+  }
+  
+  .notification-type-cell {
+    margin-bottom: 1rem;
+    padding-right: 0;
+  }
+  
+  .notification-channel-cell {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--border-color);
+    
+    &:first-of-type {
+      border-top: none;
+    }
+  }
+  
+  .channel-icon-small {
+    margin-right: 0.5rem;
+  }
+} 

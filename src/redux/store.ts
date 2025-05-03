@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './slices/authSlice';
 import loadingReducer from './slices/loadingSlice';
 import notificationReducer from './slices/notificationSlice';
+import uiSettingsReducer from './slices/uiSettingsSlice';
 
 // Configure the store
 const store = configureStore({
@@ -9,6 +10,7 @@ const store = configureStore({
     auth: authReducer,
     loading: loadingReducer,
     notifications: notificationReducer,
+    uiSettings: uiSettingsReducer,
     // Add other reducers here as needed
   },
   // Optional: Add middleware or devTools configuration

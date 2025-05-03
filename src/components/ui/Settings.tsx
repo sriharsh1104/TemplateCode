@@ -1,5 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Settings.scss';
+import { useNavigate } from 'react-router-dom';
+import { useAppDispatch } from '../../redux/hooks';
+import { setActiveSettingsTab } from '../../redux/slices/uiSettingsSlice';
 
 // MUI Icons
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
@@ -7,12 +10,12 @@ import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined
 import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined';
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
-import { useNavigate } from 'react-router-dom';
 
 const Settings: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const toggleSettings = () => {
     setIsOpen(!isOpen);
@@ -36,25 +39,34 @@ const Settings: React.FC = () => {
       id: 'account',
       label: 'Account Settings',
       icon: <AccountCircleOutlinedIcon />,
-      onClick: () => navigate('/profile')
+      onClick: () => navigate('/auth/profile')
     },
     {
       id: 'security',
       label: 'Security',
       icon: <SecurityOutlinedIcon />,
-      onClick: () => navigate('/settings')
+      onClick: () => {
+        navigate('/auth/settings');
+        dispatch(setActiveSettingsTab('security'));
+      }
     },
     {
       id: 'notifications',
       label: 'Notifications',
       icon: <NotificationsOutlinedIcon />,
-      onClick: () => console.log('Notification settings')
+      onClick: () => {
+        navigate('/auth/settings');
+        dispatch(setActiveSettingsTab('notifications'));
+      }
     },
     {
       id: 'help',
       label: 'Help & Support',
       icon: <HelpOutlineOutlinedIcon />,
-      onClick: () => console.log('Help')
+      onClick: () => {
+        navigate('/auth/settings');
+        dispatch(setActiveSettingsTab('help'));
+      }
     },
   ];
 
