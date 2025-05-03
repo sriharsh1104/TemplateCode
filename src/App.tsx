@@ -9,14 +9,34 @@ import ResetPassword from './components/auth/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
-import { useAppSelector } from './redux/hooks';
+import GlobalLoader from './components/ui/GlobalLoader';
+import { useAppSelector, useAppDispatch } from './redux/hooks';
 import { selectAuth } from './redux/slices/authSlice';
+import { useCurrentUser } from './api/hooks/useAuth';
+import { showLoader, hideLoader } from './redux/slices/loadingSlice';
 import './styles/global.scss';
 
 function App() {
   // Get authentication state from Redux
   const { user } = useAppSelector(selectAuth);
   const isAuthenticated = !!user?.isAuthenticated;
+  const dispatch = useAppDispatch();
+
+  // Load user data if token exists
+  const { isLoading: isLoadingUser } = useCurrentUser();
+
+  // Show global loader while checking auth status
+  useEffect(() => {
+    if (isLoadingUser && !isAuthenticated) {
+      dispatch(showLoader("Loading application..."));
+    } else {
+      dispatch(hideLoader());
+    }
+
+    return () => {
+      dispatch(hideLoader());
+    };
+  }, [isLoadingUser, isAuthenticated, dispatch]);
 
   // Auth Guard - Protects routes that require authentication
   const AuthGuard = () => {
@@ -29,6 +49,7 @@ function App() {
   return (
     <ThemeProvider>
       <Router>
+        <GlobalLoader />
         <Routes>
           {/* Root redirect - Sign In page */}
           <Route 

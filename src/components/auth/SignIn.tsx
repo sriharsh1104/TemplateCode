@@ -1,9 +1,12 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
-import { useAppDispatch, useAppSelector } from '../../redux/hooks';
-import { loginSuccess, setError, setLoading, selectAuth } from '../../redux/slices/authSlice';
+import { useLogin } from '../../api/hooks/useAuth';
+import { useAppSelector } from '../../redux/hooks';
+import { selectAuth } from '../../redux/slices/authSlice';
+import Loader from '../ui/Loader';
+import { useGlobalLoader } from '../../hooks/useGlobalLoader';
 import './SignIn.scss';
 
 // Validation schema
@@ -25,9 +28,11 @@ interface SignInValues {
 }
 
 const SignIn: React.FC = () => {
-  const navigate = useNavigate();
-  const dispatch = useAppDispatch();
+  const login = useLogin();
   const { isLoading, error } = useAppSelector(selectAuth);
+  
+  // Use global loader
+  useGlobalLoader(isLoading, "Signing in...");
   
   // Initial form values
   const initialValues: SignInValues = {
@@ -37,35 +42,10 @@ const SignIn: React.FC = () => {
   };
   
   const handleSubmit = (values: SignInValues, actions: FormikHelpers<SignInValues>) => {
-    // Clear any previous errors
-    dispatch(setError(null));
-    dispatch(setLoading(true));
-    
-    // Handle sign in logic here
-    console.log('Sign in with:', values);
-    
-    // Simulate authentication - in a real app, you would verify credentials first
-    setTimeout(() => {
-      try {
-        // Create user data and dispatch login success
-        const userData = {
-          email: values.email,
-          name: 'John Doe', // This would come from your API
-          isAuthenticated: true,
-          lastLogin: new Date().toISOString()
-        };
-        
-        dispatch(loginSuccess(userData));
-        
-        // Navigate to dashboard after signing in
-        navigate('/auth/dashboard');
-      } catch (err) {
-        dispatch(setLoading(false));
-        dispatch(setError('Authentication failed. Please try again.'));
-        console.error('Login error:', err);
-        actions.setSubmitting(false);
-      }
-    }, 1000);
+    login.mutate({
+      email: values.email,
+      password: values.password
+    });
   };
   
   return (
@@ -127,7 +107,7 @@ const SignIn: React.FC = () => {
                 className="btn btn-primary signin-btn" 
                 disabled={isLoading || isSubmitting}
               >
-                {isLoading ? 'Signing In...' : 'Sign In'}
+                Sign In
               </button>
               
               <div className="auth-footer">

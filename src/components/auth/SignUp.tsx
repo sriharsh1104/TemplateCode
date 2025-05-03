@@ -1,9 +1,12 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
-import { useAppDispatch, useAppSelector } from '../../redux/hooks';
-import { loginSuccess, setError, setLoading, selectAuth } from '../../redux/slices/authSlice';
+import { useSignUp } from '../../api/hooks/useAuth';
+import { useAppSelector } from '../../redux/hooks';
+import { selectAuth } from '../../redux/slices/authSlice';
+import Loader from '../ui/Loader';
+import { useGlobalLoader } from '../../hooks/useGlobalLoader';
 import './SignUp.scss';
 
 // Validation schema
@@ -39,9 +42,11 @@ interface SignUpValues {
 }
 
 const SignUp: React.FC = () => {
-  const navigate = useNavigate();
-  const dispatch = useAppDispatch();
+  const signUp = useSignUp();
   const { isLoading, error } = useAppSelector(selectAuth);
+  
+  // Use global loader
+  useGlobalLoader(isLoading, "Creating account...");
   
   // Initial form values
   const initialValues: SignUpValues = {
@@ -53,35 +58,11 @@ const SignUp: React.FC = () => {
   };
   
   const handleSubmit = (values: SignUpValues, actions: FormikHelpers<SignUpValues>) => {
-    // Clear any previous errors
-    dispatch(setError(null));
-    dispatch(setLoading(true));
-    
-    // Handle sign up logic here
-    console.log('Sign up with:', values);
-    
-    // Simulate signup request
-    setTimeout(() => {
-      try {
-        // Create user data and dispatch login success
-        const userData = {
-          email: values.email,
-          name: values.fullName,
-          isAuthenticated: true,
-          lastLogin: new Date().toISOString()
-        };
-        
-        dispatch(loginSuccess(userData));
-        
-        // Navigate to dashboard after signing up
-        navigate('/auth/dashboard');
-      } catch (err) {
-        dispatch(setLoading(false));
-        dispatch(setError('Registration failed. Please try again.'));
-        console.error('Signup error:', err);
-        actions.setSubmitting(false);
-      }
-    }, 1000);
+    signUp.mutate({
+      fullName: values.fullName,
+      email: values.email,
+      password: values.password
+    });
   };
   
   return (
@@ -174,7 +155,7 @@ const SignUp: React.FC = () => {
                 className="btn btn-primary signup-btn" 
                 disabled={isLoading || isSubmitting}
               >
-                {isLoading ? 'Creating Account...' : 'Create Account'}
+                Create Account
               </button>
               
               <div className="auth-footer">

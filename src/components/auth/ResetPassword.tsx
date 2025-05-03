@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { useResetPassword } from '../../api/hooks/useAuth';
+import { useGlobalLoader } from '../../hooks/useGlobalLoader';
 import './ResetPassword.scss';
 
 // Validation schema
@@ -25,9 +27,16 @@ interface ResetPasswordValues {
 }
 
 const ResetPassword: React.FC = () => {
-  const navigate = useNavigate();
   const [resetComplete, setResetComplete] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
+  const location = useLocation();
+  const resetPassword = useResetPassword();
+  
+  // Use global loader
+  useGlobalLoader(resetPassword.isPending, "Resetting password...");
+  
+  // Extract token from URL query params
+  const queryParams = new URLSearchParams(location.search);
+  const token = queryParams.get('token') || '';
   
   // Initial form values
   const initialValues: ResetPasswordValues = {
@@ -36,19 +45,14 @@ const ResetPassword: React.FC = () => {
   };
   
   const handleSubmit = (values: ResetPasswordValues) => {
-    // Clear any previous errors
-    setServerError(null);
-    
-    // In a real app, you would call an API to reset the password
-    console.log('Resetting password with:', values);
-    
-    // Simulate success
-    setResetComplete(true);
-    
-    // Redirect to sign in after 3 seconds
-    setTimeout(() => {
-      navigate('/');
-    }, 3000);
+    resetPassword.mutate(
+      { token, password: values.password },
+      {
+        onSuccess: () => {
+          setResetComplete(true);
+        }
+      }
+    );
   };
   
   return (
@@ -67,7 +71,11 @@ const ResetPassword: React.FC = () => {
           >
             {({ errors, touched, isSubmitting }) => (
               <Form className="auth-form">
-                {serverError && <div className="auth-error">{serverError}</div>}
+                {resetPassword.error && (
+                  <div className="auth-error">
+                    {(resetPassword.error as any)?.response?.data?.message || 'Failed to reset password. Please try again.'}
+                  </div>
+                )}
                 
                 <div className="form-group">
                   <label htmlFor="password" className="form-label">New Password</label>
@@ -96,9 +104,9 @@ const ResetPassword: React.FC = () => {
                 <button 
                   type="submit" 
                   className="btn btn-primary reset-btn"
-                  disabled={isSubmitting}
+                  disabled={resetPassword.isPending || isSubmitting}
                 >
-                  {isSubmitting ? 'Resetting...' : 'Reset Password'}
+                  Reset Password
                 </button>
                 
                 <div className="auth-footer">

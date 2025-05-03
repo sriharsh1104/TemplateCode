@@ -150,4 +150,14 @@
   .main-content {
     margin-left: 0;
   }
+}
+
+.logout-loader {
+  display: flex;
+  align-items: center;
+  
+  .logout-loader-text {
+    margin-left: 0.5rem;
+    font-size: 0.875rem;
+  }
 } 

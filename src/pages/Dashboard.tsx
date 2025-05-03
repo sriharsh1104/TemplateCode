@@ -1,7 +1,32 @@
 import React from 'react';
+import { useDashboardStats } from '../api/hooks/useUser';
+import { useGlobalLoader } from '../hooks/useGlobalLoader';
 import './Dashboard.scss';
 
 const Dashboard: React.FC = () => {
+  const { data: stats, isLoading, isError } = useDashboardStats();
+  
+  // Use the global loader hook
+  useGlobalLoader(isLoading, "Loading dashboard data...");
+
+  if (isError) {
+    return <div className="dashboard-error">Failed to load dashboard data. Please try again later.</div>;
+  }
+
+  // Use sample data if API data is not available
+  const dashboardData = stats || {
+    users: { total: 1234, growth: 12.5 },
+    revenue: { total: 12345, growth: 8.3 },
+    orders: { total: 856, growth: -2.7 },
+    conversion: { rate: 12.8, growth: 3.2 },
+    activities: [
+      { type: 'success', text: 'New user registered', time: '5 minutes ago' },
+      { type: 'warning', text: 'User updated their profile', time: '1 hour ago' },
+      { type: 'error', text: 'Payment failed', time: '2 hours ago' },
+      { type: 'success', text: 'New order received', time: '3 hours ago' }
+    ]
+  };
+
   return (
     <div className="dashboard">
       <div className="dashboard__header">
@@ -12,26 +37,34 @@ const Dashboard: React.FC = () => {
       <div className="dashboard__stats">
         <div className="stat-card">
           <h3 className="stat-card__title">Total Users</h3>
-          <p className="stat-card__value">1,234</p>
-          <p className="stat-card__change positive">+12.5%</p>
+          <p className="stat-card__value">{dashboardData.users.total.toLocaleString()}</p>
+          <p className={`stat-card__change ${dashboardData.users.growth >= 0 ? 'positive' : 'negative'}`}>
+            {dashboardData.users.growth >= 0 ? '+' : ''}{dashboardData.users.growth}%
+          </p>
         </div>
         
         <div className="stat-card">
           <h3 className="stat-card__title">Revenue</h3>
-          <p className="stat-card__value">$12,345</p>
-          <p className="stat-card__change positive">+8.3%</p>
+          <p className="stat-card__value">${dashboardData.revenue.total.toLocaleString()}</p>
+          <p className={`stat-card__change ${dashboardData.revenue.growth >= 0 ? 'positive' : 'negative'}`}>
+            {dashboardData.revenue.growth >= 0 ? '+' : ''}{dashboardData.revenue.growth}%
+          </p>
         </div>
         
         <div className="stat-card">
           <h3 className="stat-card__title">Orders</h3>
-          <p className="stat-card__value">856</p>
-          <p className="stat-card__change negative">-2.7%</p>
+          <p className="stat-card__value">{dashboardData.orders.total.toLocaleString()}</p>
+          <p className={`stat-card__change ${dashboardData.orders.growth >= 0 ? 'positive' : 'negative'}`}>
+            {dashboardData.orders.growth >= 0 ? '+' : ''}{dashboardData.orders.growth}%
+          </p>
         </div>
         
         <div className="stat-card">
           <h3 className="stat-card__title">Conversion</h3>
-          <p className="stat-card__value">12.8%</p>
-          <p className="stat-card__change positive">+3.2%</p>
+          <p className="stat-card__value">{dashboardData.conversion.rate}%</p>
+          <p className={`stat-card__change ${dashboardData.conversion.growth >= 0 ? 'positive' : 'negative'}`}>
+            {dashboardData.conversion.growth >= 0 ? '+' : ''}{dashboardData.conversion.growth}%
+          </p>
         </div>
       </div>
       
@@ -40,34 +73,15 @@ const Dashboard: React.FC = () => {
           <h2 className="section-title">Recent Activity</h2>
           <div className="card">
             <ul className="activity-list">
-              <li className="activity-item">
-                <div className="activity-item__icon success"></div>
-                <div className="activity-item__content">
-                  <p className="activity-item__text">New user registered</p>
-                  <p className="activity-item__time">5 minutes ago</p>
-                </div>
-              </li>
-              <li className="activity-item">
-                <div className="activity-item__icon warning"></div>
-                <div className="activity-item__content">
-                  <p className="activity-item__text">User updated their profile</p>
-                  <p className="activity-item__time">1 hour ago</p>
-                </div>
-              </li>
-              <li className="activity-item">
-                <div className="activity-item__icon error"></div>
-                <div className="activity-item__content">
-                  <p className="activity-item__text">Payment failed</p>
-                  <p className="activity-item__time">2 hours ago</p>
-                </div>
-              </li>
-              <li className="activity-item">
-                <div className="activity-item__icon success"></div>
-                <div className="activity-item__content">
-                  <p className="activity-item__text">New order received</p>
-                  <p className="activity-item__time">3 hours ago</p>
-                </div>
-              </li>
+              {dashboardData.activities.map((activity, index) => (
+                <li className="activity-item" key={index}>
+                  <div className={`activity-item__icon ${activity.type}`}></div>
+                  <div className="activity-item__content">
+                    <p className="activity-item__text">{activity.text}</p>
+                    <p className="activity-item__time">{activity.time}</p>
+                  </div>
+                </li>
+              ))}
             </ul>
           </div>
         </div>

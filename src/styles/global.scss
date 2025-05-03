@@ -220,4 +220,32 @@ button, input, select, textarea {
   background-color: #f8d7da;
   border: 1px solid #f5c6cb;
   border-radius: 0.25rem;
+}
+
+// App loader
+.app-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100%;
+  font-size: 1.25rem;
+  color: var(--primary-color);
+  
+  &::after {
+    content: '';
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-left: 0.75rem;
+    border: 2px solid var(--primary-color);
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 } 

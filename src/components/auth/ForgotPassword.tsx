@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { useRequestPasswordReset } from '../../api/hooks/useAuth';
+import { useGlobalLoader } from '../../hooks/useGlobalLoader';
 import './ForgotPassword.scss';
 
 // Validation schema
@@ -19,7 +21,10 @@ interface ForgotPasswordValues {
 const ForgotPassword: React.FC = () => {
   const [emailSent, setEmailSent] = useState(false);
   const [sentEmail, setSentEmail] = useState('');
-  const [serverError, setServerError] = useState<string | null>(null);
+  const resetPasswordRequest = useRequestPasswordReset();
+  
+  // Use global loader
+  useGlobalLoader(resetPasswordRequest.isPending, "Sending reset link...");
   
   // Initial form values
   const initialValues: ForgotPasswordValues = {
@@ -27,15 +32,12 @@ const ForgotPassword: React.FC = () => {
   };
   
   const handleSubmit = (values: ForgotPasswordValues) => {
-    // Clear any previous errors
-    setServerError(null);
-    
-    // In a real app, you would call an API to send a password reset email
-    console.log('Sending password reset email to:', values.email);
-    
-    // Simulate success
-    setSentEmail(values.email);
-    setEmailSent(true);
+    resetPasswordRequest.mutate(values.email, {
+      onSuccess: () => {
+        setSentEmail(values.email);
+        setEmailSent(true);
+      }
+    });
   };
   
   return (
@@ -54,7 +56,11 @@ const ForgotPassword: React.FC = () => {
           >
             {({ errors, touched, isSubmitting }) => (
               <Form className="auth-form">
-                {serverError && <div className="auth-error">{serverError}</div>}
+                {resetPasswordRequest.error && (
+                  <div className="auth-error">
+                    {(resetPasswordRequest.error as any)?.response?.data?.message || 'Failed to send reset link. Please try again.'}
+                  </div>
+                )}
                 
                 <div className="form-group">
                   <label htmlFor="email" className="form-label">Email</label>
@@ -71,9 +77,9 @@ const ForgotPassword: React.FC = () => {
                 <button 
                   type="submit" 
                   className="btn btn-primary reset-btn"
-                  disabled={isSubmitting}
+                  disabled={resetPasswordRequest.isPending || isSubmitting}
                 >
-                  {isSubmitting ? 'Sending...' : 'Send Reset Link'}
+                  Send Reset Link
                 </button>
                 
                 <div className="auth-footer">

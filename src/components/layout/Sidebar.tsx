@@ -1,7 +1,7 @@
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { useAppDispatch } from '../../redux/hooks';
-import { logout } from '../../redux/slices/authSlice';
+import React, { useEffect } from 'react';
+import { NavLink } from 'react-router-dom';
+import { useLogout } from '../../api/hooks/useAuth';
+import { useGlobalLoader } from '../../hooks/useGlobalLoader';
 import './Sidebar.scss';
 
 // MUI Icons
@@ -14,15 +14,14 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
-  const navigate = useNavigate();
-  const dispatch = useAppDispatch();
+  const logout = useLogout();
+  
+  // Use global loader for logout
+  useGlobalLoader(logout.isPending, "Logging out...");
 
   const handleLogout = () => {
-    // Dispatch logout action
-    dispatch(logout());
-    
-    // Navigate to sign in page
-    navigate('/');
+    // Call the logout mutation
+    logout.mutate();
   };
 
   return (
@@ -55,7 +54,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
           </ul>
         </nav>
         <div className="sidebar__footer">
-          <button className="sidebar__logout" onClick={handleLogout}>
+          <button 
+            className="sidebar__logout" 
+            onClick={handleLogout}
+            disabled={logout.isPending}
+          >
             <LogoutOutlinedIcon />
             <span className="logout-text">Logout</span>
           </button>
