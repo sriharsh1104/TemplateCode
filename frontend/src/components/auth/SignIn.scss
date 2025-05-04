@@ -73,6 +73,17 @@
   border: 1px solid rgba(var(--danger-rgb), 0.2);
 }
 
+.auth-success {
+  background-color: rgba(var(--success-rgb), 0.1);
+  color: var(--success-color);
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  text-align: center;
+  border: 1px solid rgba(var(--success-rgb), 0.2);
+}
+
 .btn-loader {
   display: flex;
   align-items: center;

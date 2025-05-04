@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
 import { useLogin } from '../../api/hooks/useAuth';
@@ -30,9 +30,21 @@ interface SignInValues {
 const SignIn: React.FC = () => {
   const login = useLogin();
   const { isLoading, error } = useAppSelector(selectAuth);
+  const location = useLocation();
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
   // Use global loader
   useGlobalLoader(isLoading, "Signing in...");
+  
+  // Check if there's a success message from registration
+  useEffect(() => {
+    if (location.state && 'registrationSuccess' in location.state) {
+      setSuccessMessage(location.state.message || 'Registration successful! Please sign in.');
+      
+      // Clear the location state after reading it
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
   
   // Initial form values
   const initialValues: SignInValues = {
@@ -42,6 +54,7 @@ const SignIn: React.FC = () => {
   };
   
   const handleSubmit = (values: SignInValues, actions: FormikHelpers<SignInValues>) => {
+    setSuccessMessage(null); // Clear success message on submit
     login.mutate({
       email: values.email,
       password: values.password
@@ -64,6 +77,7 @@ const SignIn: React.FC = () => {
           {({ errors, touched, isSubmitting }) => (
             <Form className="auth-form">
               {error && <div className="auth-error">{error}</div>}
+              {successMessage && <div className="auth-success">{successMessage}</div>}
               
               <div className="form-group">
                 <label htmlFor="email" className="form-label">Email</label>

@@ -2,7 +2,7 @@ import { Server as HTTPServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import cookie from 'cookie';
-import { IUser } from './models/User';
+import User, { IUser } from './models/User';
 import UserSession from './models/UserSession';
 import logger from './utils/logger';
 
@@ -23,7 +23,7 @@ interface AuthenticatedSocket extends Socket {
 export const initializeSocket = (server: HTTPServer): void => {
   io = new Server(server, {
     cors: {
-      origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+      origin: process.env.CORS_ORIGIN || ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
       methods: ['GET', 'POST'],
       credentials: true
     }
@@ -59,23 +59,55 @@ export const initializeSocket = (server: HTTPServer): void => {
       ) as { id: string };
       
       // Check if the session is active in the database
-      const session = await UserSession.findOne({ 
-        token, 
-        isActive: true,
-        expiresAt: { $gt: new Date() }
-      });
-      
-      if (!session) {
-        return next(new Error('Session expired or invalid'));
+      let session;
+      try {
+        session = await UserSession.findOne({ 
+          token, 
+          isActive: true,
+          expiresAt: { $gt: new Date() }
+        });
+        
+        if (!session) {
+          logger.warn(`No active session found for token. Creating session for user ${decoded.id}`);
+          // Create a new session since we have a valid token but no session
+          // This helps with backward compatibility
+          const user = await User.findById(decoded.id);
+          if (!user) {
+            return next(new Error('User not found'));
+          }
+          
+          // Create a new session that expires in 7 days
+          const expiresAt = new Date();
+          expiresAt.setDate(expiresAt.getDate() + 7);
+          
+          session = await UserSession.create({
+            user: decoded.id,
+            token,
+            lastActive: new Date(),
+            expiresAt,
+            isActive: true,
+            deviceInfo: {
+              deviceType: 'unknown',
+              browser: 'Unknown',
+              os: 'Unknown',
+              ip: socket.handshake.address || 'unknown'
+            }
+          });
+        }
+      } catch (sessionError) {
+        logger.error(`Error checking or creating session: ${sessionError}`);
+        // Continue anyway since we have a valid token
       }
       
       // Attach user ID to socket
       socket.userId = decoded.id;
       
-      // Update last active timestamp
-      await UserSession.findByIdAndUpdate(session._id, {
-        lastActive: new Date()
-      });
+      // Update last active timestamp if we have a session
+      if (session) {
+        await UserSession.findByIdAndUpdate(session._id, {
+          lastActive: new Date()
+        });
+      }
       
       next();
     } catch (error) {

@@ -8,7 +8,7 @@ export interface LoginCredentials {
 }
 
 export interface SignUpData {
-  fullName: string;
+  name: string; // Changed from fullName to match backend User model
   email: string;
   password: string;
 }
@@ -19,8 +19,14 @@ const authService = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     try {
       const response = await axios.post<AuthResponse>('/auth/login', credentials);
+      
+      if (response.status !== 200) {
+        throw new Error(`Login failed with status code ${response.status}`);
+      }
+      
       return response.data;
     } catch (error) {
+      console.error('Login error:', error);
       throw error;
     }
   },
@@ -29,8 +35,14 @@ const authService = {
   signup: async (userData: SignUpData): Promise<AuthResponse> => {
     try {
       const response = await axios.post<AuthResponse>('/auth/signup', userData);
+      
+      if (response.status !== 200 && response.status !== 201) {
+        throw new Error(`Registration failed with status code ${response.status}`);
+      }
+      
       return response.data;
     } catch (error) {
+      console.error('Registration error:', error);
       throw error;
     }
   },

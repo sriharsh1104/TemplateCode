@@ -31,6 +31,13 @@ export const register = async (
       email,
       password
     });
+    
+    // Set last login timestamp
+    user.lastLogin = new Date();
+    await user.save({ validateBeforeSave: false });
+    
+    // Create and store session information
+    createSession(user, req, res);
 
     // Send response with token
     sendTokenResponse(user, 201, res);

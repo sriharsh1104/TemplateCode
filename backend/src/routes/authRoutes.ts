@@ -15,6 +15,7 @@ const router = express.Router();
 
 // Public routes
 router.post('/register', register);
+router.post('/signup', register); // Add alias for frontend compatibility
 router.post('/login', login);
 
 // Protected routes

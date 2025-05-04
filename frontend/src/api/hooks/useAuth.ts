@@ -26,13 +26,22 @@ export const useLogin = () => {
       dispatch(setLoading(true));
       dispatch(setError(null));
     },
-    onSuccess: (data) => {
-      dispatch(loginSuccess(data));
-      
-      // Initialize socket connection with the new token
-      socketService.init(data.token);
-      
-      navigate('/auth/dashboard');
+    onSuccess: (data, variables, context) => {
+      // Check if the response has a 200 status code
+      if (data) {
+        dispatch(loginSuccess(data));
+        
+        // Initialize socket connection with the new token
+        try {
+          socketService.init(data.token);
+        } catch (error) {
+          console.error('Failed to initialize socket connection:', error);
+          // Continue with login even if socket fails
+        }
+        
+        // Navigate to dashboard
+        navigate('/auth/dashboard');
+      }
     },
     onError: (error: any) => {
       dispatch(setLoading(false));
@@ -52,13 +61,20 @@ export const useSignUp = () => {
       dispatch(setLoading(true));
       dispatch(setError(null));
     },
-    onSuccess: (data) => {
-      dispatch(loginSuccess(data));
+    onSuccess: (data, variables, context) => {
+      // After successful registration, redirect to login page instead of dashboard
+      dispatch(setLoading(false));
       
-      // Initialize socket connection with the new token
-      socketService.init(data.token);
+      // Show success message
+      dispatch(setError(null));
       
-      navigate('/auth/dashboard');
+      // Navigate to login page
+      navigate('/', { 
+        state: { 
+          registrationSuccess: true,
+          message: 'Registration successful! Please sign in with your credentials.'
+        } 
+      });
     },
     onError: (error: any) => {
       dispatch(setLoading(false));

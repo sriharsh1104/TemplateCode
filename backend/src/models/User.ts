@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 
 /**
  * User document interface
@@ -110,12 +110,17 @@ UserSchema.pre('save', async function(next) {
 
 // Sign JWT and return
 UserSchema.methods.getSignedJwtToken = function() {
+  const payload = { id: this._id };
+  const secret = process.env.JWT_SECRET || 'default_jwt_secret';
+  
+  // Handle expiresIn value with proper type casting
+  const expireValue = process.env.JWT_EXPIRE || '7d';
+  
+  // Use type assertion to ensure TypeScript understands the types correctly
   return jwt.sign(
-    { id: this._id },
-    process.env.JWT_SECRET || 'default_jwt_secret',
-    {
-      expiresIn: process.env.JWT_EXPIRE || '7d'
-    }
+    payload, 
+    secret as jwt.Secret, 
+    { expiresIn: expireValue as jwt.SignOptions['expiresIn'] }
   );
 };
 

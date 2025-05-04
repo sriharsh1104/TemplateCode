@@ -11,7 +11,7 @@ import './SignUp.scss';
 
 // Validation schema
 const SignUpSchema = Yup.object().shape({
-  fullName: Yup.string()
+  name: Yup.string()
     .required('Full name is required')
     .min(2, 'Name is too short'),
   email: Yup.string()
@@ -34,7 +34,7 @@ const SignUpSchema = Yup.object().shape({
 
 // Form values interface
 interface SignUpValues {
-  fullName: string;
+  name: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -50,7 +50,7 @@ const SignUp: React.FC = () => {
   
   // Initial form values
   const initialValues: SignUpValues = {
-    fullName: '',
+    name: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -59,7 +59,7 @@ const SignUp: React.FC = () => {
   
   const handleSubmit = (values: SignUpValues, actions: FormikHelpers<SignUpValues>) => {
     signUp.mutate({
-      fullName: values.fullName,
+      name: values.name,
       email: values.email,
       password: values.password
     });
@@ -83,15 +83,15 @@ const SignUp: React.FC = () => {
               {error && <div className="auth-error">{error}</div>}
               
               <div className="form-group">
-                <label htmlFor="fullName" className="form-label">Full Name</label>
+                <label htmlFor="name" className="form-label">Full Name</label>
                 <Field
-                  id="fullName"
-                  name="fullName"
+                  id="name"
+                  name="name"
                   type="text"
-                  className={`form-control ${errors.fullName && touched.fullName ? 'is-invalid' : ''}`}
+                  className={`form-control ${errors.name && touched.name ? 'is-invalid' : ''}`}
                   placeholder="Enter your full name"
                 />
-                <ErrorMessage name="fullName" component="div" className="error-text" />
+                <ErrorMessage name="name" component="div" className="error-text" />
               </div>
               
               <div className="form-group">
