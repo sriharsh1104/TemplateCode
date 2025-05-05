@@ -1,0 +1,70 @@
+// Colors
+$primary-color: #ff6600;
+$primary-hover-color: #ff8533;
+$secondary-color: #121b3d;
+$text-color: #333;
+$light-text: #fff;
+$border-color: #e0e0e0;
+$background-color: #f5f8fa;
+$error-color: #e53935;
+$success-color: #43a047;
+$warning-color: #fb8c00;
+$info-color: #039be5;
+
+// Spacing
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-xxl: 48px;
+
+// Typography
+$font-size-xs: 12px;
+$font-size-sm: 14px;
+$font-size-md: 16px;
+$font-size-lg: 18px;
+$font-size-xl: 20px;
+$font-size-xxl: 24px;
+$font-size-display: 32px;
+$font-size-hero: 48px;
+
+// Font weights
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// Borders
+$border-radius-sm: 4px;
+$border-radius-md: 8px;
+$border-radius-lg: 12px;
+$border-radius-xl: 16px;
+$border-radius-round: 50%;
+
+// Shadows
+$shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
+$shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.15);
+
+// Layout
+$header-height: 70px;
+$sidebar-width: 280px;
+$sidebar-collapsed-width: 80px;
+$footer-height: 80px;
+$container-width: 1400px;
+
+// Z-index
+$z-index-dropdown: 100;
+$z-index-sticky: 200;
+$z-index-fixed: 300;
+$z-index-modal-backdrop: 400;
+$z-index-modal: 500;
+$z-index-popover: 600;
+$z-index-tooltip: 700;
+
+// Transitions
+$transition-fast: 0.2s;
+$transition-normal: 0.3s;
+$transition-slow: 0.5s; 
